@@ -179,6 +179,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
     ].filter(Boolean).join(' | ');
 
     const nodeLabel = options.showLabels ? `Node ${nodeNum}` : '';
+    const nodeLabelColor = "#94a3b8"; // Grey color for node identifier
 
     if (node.type === 'reservoir') {
       svgContent += `
@@ -186,7 +187,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
           <title>${tooltipText}</title>
           <rect x="${x - 25}" y="${y - 20}" width="50" height="40" fill="#3498db" stroke="#2980b9" stroke-width="2" rx="4" />
           <text x="${x}" y="${y + 5}" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${label || 'HW'}</text>
-          ${nodeLabel ? `<text x="${x}" y="${y - 30}" text-anchor="middle" fill="#2c3e50" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
+          ${nodeLabel ? `<text x="${x}" y="${y - 30}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
         </g>
       `;
     } else if (node.type === 'surgeTank') {
@@ -195,7 +196,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
           <title>${tooltipText}</title>
           <rect x="${x - 20}" y="${y - 30}" width="40" height="60" fill="#f39c12" stroke="#e67e22" stroke-width="2" rx="4" />
           <text x="${x}" y="${y + 5}" text-anchor="middle" fill="white" font-size="11" font-weight="bold">ST</text>
-          ${nodeLabel ? `<text x="${x}" y="${y - 40}" text-anchor="middle" fill="#2c3e50" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
+          ${nodeLabel ? `<text x="${x}" y="${y - 40}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
         </g>
       `;
     } else if (node.type === 'flowBoundary') {
@@ -204,7 +205,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
           <title>${tooltipText}</title>
           <path d="M ${x-25} ${y-15} L ${x+25} ${y} L ${x-25} ${y+15} Z" fill="#2ecc71" stroke="#27ae60" stroke-width="2" />
           <text x="${x - 5}" y="${y + 4}" text-anchor="middle" fill="white" font-size="10" font-weight="bold">${label || 'FB'}</text>
-          ${nodeLabel ? `<text x="${x}" y="${y + 30}" text-anchor="middle" fill="#2c3e50" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
+          ${nodeLabel ? `<text x="${x}" y="${y + 30}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
         </g>
       `;
     } else if (node.type === 'junction') {
@@ -212,7 +213,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
         <g class="node" filter="url(#shadow)">
           <title>${tooltipText}</title>
           <circle cx="${x}" cy="${y}" r="8" fill="#e74c3c" stroke="#c0392b" stroke-width="2" />
-          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="#2c3e50" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
+          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10" font-weight="bold">${nodeLabel}</text>` : ''}
         </g>
       `;
     } else {
@@ -220,7 +221,7 @@ export function generateSystemDiagramSVG(nodes: WhamoNode[], edges: WhamoEdge[],
         <g class="node">
           <title>${tooltipText}</title>
           <circle cx="${x}" cy="${y}" r="6" fill="#95a5a6" stroke="#7f8c8d" stroke-width="2" />
-          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="#2c3e50" font-size="10">${nodeLabel}</text>` : ''}
+          ${nodeLabel ? `<text x="${x}" y="${y - 15}" text-anchor="middle" fill="${nodeLabelColor}" font-size="10">${nodeLabel}</text>` : ''}
         </g>
       `;
     }

@@ -263,6 +263,7 @@ function DesignerInner() {
   };
 
   const [showDiagram, setShowDiagram] = useState(false);
+  const [showShortcutConsole, setShowShortcutConsole] = useState(false);
   const [diagramSvg, setDiagramSvg] = useState<string | null>(null);
   const [isMaximized, setIsMaximized] = useState(false);
   const [showLabels, setShowLabels] = useState(true);
@@ -369,6 +370,12 @@ function DesignerInner() {
     // Trigger file picker
     fileInput.click();
   };
+
+  useEffect(() => {
+    const handleToggleConsole = () => setShowShortcutConsole(prev => !prev);
+    window.addEventListener('toggle-shortcut-console', handleToggleConsole);
+    return () => window.removeEventListener('toggle-shortcut-console', handleToggleConsole);
+  }, []);
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground">
@@ -528,6 +535,70 @@ function DesignerInner() {
             </>
           )}
         </ResizablePanelGroup>
+
+        {showShortcutConsole && (
+          <div className="absolute bottom-0 left-0 right-0 h-48 bg-slate-900 text-slate-100 z-[100] border-t border-slate-700 font-mono text-sm overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
+              <div className="flex items-center gap-2">
+                <Layout className="w-4 h-4" />
+                <span className="font-semibold uppercase tracking-wider text-xs">Shortcut Console</span>
+              </div>
+              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => setShowShortcutConsole(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <div className="flex-1 p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Undo Action</span>
+                <span className="text-blue-400">Ctrl + Z</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Redo Action</span>
+                <span className="text-blue-400">Ctrl + Y</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Open File/Folder</span>
+                <span className="text-blue-400">Ctrl + O</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Save Project</span>
+                <span className="text-blue-400">Ctrl + S</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Cut Element</span>
+                <span className="text-blue-400">Ctrl + X</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Copy Element</span>
+                <span className="text-blue-400">Ctrl + C</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Paste Element</span>
+                <span className="text-blue-400">Ctrl + V</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Select All</span>
+                <span className="text-blue-400">Ctrl + A</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Zoom In</span>
+                <span className="text-blue-400">+ / =</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Zoom Out</span>
+                <span className="text-blue-400">- / _</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Fit to View</span>
+                <span className="text-blue-400">F</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-800 pb-1">
+                <span className="text-slate-400">Delete Element</span>
+                <span className="text-blue-400">Del / Backspace</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

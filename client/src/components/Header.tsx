@@ -82,6 +82,8 @@ export function Header({
   onShowDiagram,
 }: HeaderProps) {
   const { toast } = useToast();
+  const [showHelp, setShowHelp] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
   const {
     addNode,
     clearNetwork,
