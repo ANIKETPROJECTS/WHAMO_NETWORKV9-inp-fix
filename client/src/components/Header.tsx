@@ -155,7 +155,8 @@ export function Header({
       const blob = await response.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `${fileName || "network"}.out`;
+      const downloadName = (fileName && fileName !== "Untitled Network") ? fileName : "network";
+      link.download = `${downloadName}.out`;
       link.click();
       toast({
         title: "Success",
@@ -288,7 +289,7 @@ export function Header({
                   className="gap-2"
                 >
                   <Undo2 className="w-4 h-4" /> Undo{" "}
-                  <MenubarShortcut>⌘Z</MenubarShortcut>
+                  <MenubarShortcut>Ctrl+Z</MenubarShortcut>
                 </MenubarItem>
                 <MenubarItem
                   onClick={redo}
@@ -296,7 +297,7 @@ export function Header({
                   className="gap-2"
                 >
                   <Redo2 className="w-4 h-4" /> Redo{" "}
-                  <MenubarShortcut>⇧⌘Z</MenubarShortcut>
+                  <MenubarShortcut>Ctrl+Y</MenubarShortcut>
                 </MenubarItem>
                 <MenubarSeparator />
                 <MenubarItem
