@@ -44,10 +44,11 @@ import {
   Maximize2, 
   Minimize2, 
   Tag, 
-  EyeOff,
-  Info,
-  ChevronDown,
-  ChevronUp
+  EyeOff, 
+  Info, 
+  ChevronDown, 
+  ChevronUp,
+  Layout
 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
