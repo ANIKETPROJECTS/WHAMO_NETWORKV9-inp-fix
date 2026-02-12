@@ -98,50 +98,46 @@ function DesignerInner() {
     loadedFileHandle
   } = useNetworkStore();
 
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Check if user is typing in an input
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Keyboard shortcuts for zoom and view
-      if (event.key === '+' || event.key === '=') {
-        zoomIn();
-      } else if (event.key === '-' || event.key === '_') {
-        zoomOut();
-      } else if (event.key.toLowerCase() === 'f') {
-        fitView();
-      } else if (event.key === 'F11') {
-        event.preventDefault();
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen().catch(console.error);
-        } else {
-          document.exitFullscreen().catch(console.error);
-        }
-      } else if (event.key.toLowerCase() === 'z' && (event.metaKey || event.ctrlKey)) {
-        if (event.shiftKey) {
-          redo();
-        } else {
-          undo();
-        }
-        event.preventDefault();
-      } else if (event.key.toLowerCase() === 'y' && (event.metaKey || event.ctrlKey)) {
-        redo();
-        event.preventDefault();
-      } else if (event.key.toLowerCase() === 's' && (event.metaKey || event.ctrlKey)) {
-        handleSave();
-        event.preventDefault();
-      } else if ((event.key === 'Delete' || event.key === 'Backspace') && 
-          selectedElementId && 
-          selectedElementType) {
-        deleteElement(selectedElementId, selectedElementType);
-      }
+  const handleSave = async () => {
+    const data = { 
+      projectName,
+      nodes, 
+      edges,
+      computationalParams,
+      outputRequests
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [deleteElement, selectedElementId, selectedElementType, zoomIn, zoomOut, fitView, toggleLock, undo, redo, handleSave]);
+    try {
+      if (loadedFileHandle && 'showSaveFilePicker' in window) {
+        // We have a file handle and supporting browser, try to save directly
+        // Permission check
+        const options = {
+          mode: 'readwrite',
+        };
+        
+        // Verify permission if needed
+        if (await (loadedFileHandle as any).queryPermission(options) !== 'granted') {
+          if (await (loadedFileHandle as any).requestPermission(options) !== 'granted') {
+            throw new Error("Permission denied");
+          }
+        }
+
+        const writable = await (loadedFileHandle as any).createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+        toast({ title: "Project Saved", description: `Changes saved to ${projectName}.` });
+        return;
+      }
+    } catch (err) {
+      console.warn("Direct save failed, falling back to download:", err);
+    }
+
+    // Fallback to traditional download if no handle or direct save fails
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'network'}.json`;
+    saveAs(blob, fileName);
+    toast({ title: "Project Downloaded", description: "Network topology saved as JSON file." });
+  };
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -193,46 +189,50 @@ function DesignerInner() {
     }
   }, [selectElement]);
 
-  const handleSave = async () => {
-    const data = { 
-      projectName,
-      nodes, 
-      edges,
-      computationalParams,
-      outputRequests
-    };
-
-    try {
-      if (loadedFileHandle && 'showSaveFilePicker' in window) {
-        // We have a file handle and supporting browser, try to save directly
-        // Permission check
-        const options = {
-          mode: 'readwrite',
-        };
-        
-        // Verify permission if needed
-        if (await (loadedFileHandle as any).queryPermission(options) !== 'granted') {
-          if (await (loadedFileHandle as any).requestPermission(options) !== 'granted') {
-            throw new Error("Permission denied");
-          }
-        }
-
-        const writable = await (loadedFileHandle as any).createWritable();
-        await writable.write(JSON.stringify(data, null, 2));
-        await writable.close();
-        toast({ title: "Project Saved", description: `Changes saved to ${projectName}.` });
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check if user is typing in an input
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
         return;
       }
-    } catch (err) {
-      console.warn("Direct save failed, falling back to download:", err);
-    }
 
-    // Fallback to traditional download if no handle or direct save fails
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'network'}.json`;
-    saveAs(blob, fileName);
-    toast({ title: "Project Downloaded", description: "Network topology saved as JSON file." });
-  };
+      // Keyboard shortcuts for zoom and view
+      if (event.key === '+' || event.key === '=') {
+        zoomIn();
+      } else if (event.key === '-' || event.key === '_') {
+        zoomOut();
+      } else if (event.key.toLowerCase() === 'f') {
+        fitView();
+      } else if (event.key === 'F11') {
+        event.preventDefault();
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(console.error);
+        } else {
+          document.exitFullscreen().catch(console.error);
+        }
+      } else if (event.key.toLowerCase() === 'z' && (event.metaKey || event.ctrlKey)) {
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+        event.preventDefault();
+      } else if (event.key.toLowerCase() === 'y' && (event.metaKey || event.ctrlKey)) {
+        redo();
+        event.preventDefault();
+      } else if (event.key.toLowerCase() === 's' && (event.metaKey || event.ctrlKey)) {
+        handleSave();
+        event.preventDefault();
+      } else if ((event.key === 'Delete' || event.key === 'Backspace') && 
+          selectedElementId && 
+          selectedElementType) {
+        deleteElement(selectedElementId, selectedElementType);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteElement, selectedElementId, selectedElementType, zoomIn, zoomOut, fitView, toggleLock, undo, redo, handleSave]);
 
   const handleLoadClick = async () => {
     if ('showOpenFilePicker' in window) {
@@ -618,128 +618,101 @@ function DesignerInner() {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="w-3 h-3 bg-[#e74c3c] border border-[#c0392b] rounded-full" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Junction</span>
+                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Node/Junction</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[10px] border-l-[#2ecc71]" />
-                          <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Flow BC</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-5 h-0.5 bg-[#3498db]" />
+                          <div className="w-5 h-[2px] bg-[#7f8c8d]" />
                           <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">Conduit</span>
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="icon" onClick={() => setShowLabels(!showLabels)} title={showLabels ? "Hide Labels" : "Show Labels"}>
-                        {showLabels ? <EyeOff className="w-4 h-4" /> : <Tag className="w-4 h-4" />}
+                    
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className={cn("h-8 gap-2", !showLabels && "bg-muted")}
+                        onClick={() => setShowLabels(!showLabels)}
+                      >
+                        {showLabels ? <Tag className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        <span className="text-xs uppercase tracking-wide font-semibold">{showLabels ? "Hide Labels" : "Show Labels"}</span>
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setIsMaximized(!isMaximized)} title={isMaximized ? "Restore" : "Maximize"}>
-                        {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 gap-2"
+                        onClick={downloadImage}
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span className="text-xs uppercase tracking-wide font-semibold">Export PNG</span>
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={downloadImage} title="Download Image">
-                        <Download className="w-4 h-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => {setShowDiagram(false); setIsMaximized(false);}} title="Close">
+                      <div className="w-px h-4 bg-border mx-1" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 px-2 hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => setShowDiagram(false)}
+                      >
                         <X className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
-                  <div className="flex-1 flex overflow-hidden p-4">
-                    <TransformWrapper
-                      initialScale={1}
-                      minScale={0.5}
-                      maxScale={4}
-                      centerOnInit
+                  
+                  <div className="flex-1 overflow-auto bg-slate-50/50 p-8 scrollbar-hide">
+                    <div 
+                      id="system-diagram-container"
+                      className="min-w-fit min-h-fit bg-white rounded-2xl shadow-sm border border-slate-200/60 p-12 transition-all duration-300"
+                      dangerouslySetInnerHTML={{ __html: diagramSvg || '' }} 
+                    />
+                  </div>
+
+                  {/* Absolute positioning for controls */}
+                  <div className="absolute bottom-6 right-6 flex flex-col gap-2">
+                    <Button
+                      size="icon"
+                      variant="secondary"
+                      className="h-10 w-10 rounded-full shadow-lg border border-border/50 bg-background/80 backdrop-blur-sm"
+                      onClick={() => setIsMaximized(!isMaximized)}
                     >
-                      {({ zoomIn, zoomOut, resetTransform }: { zoomIn: () => void, zoomOut: () => void, resetTransform: () => void }) => (
-                        <div className="w-full h-full relative group">
-                          <div className="absolute bottom-4 left-4 z-10 flex flex-col gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button size="icon" variant="secondary" className="w-8 h-8 rounded-full shadow-md" onClick={() => zoomIn()}>+</Button>
-                            <Button size="icon" variant="secondary" className="w-8 h-8 rounded-full shadow-md" onClick={() => zoomOut()}>-</Button>
-                            <Button size="icon" variant="secondary" className="w-8 h-8 rounded-full shadow-md" onClick={() => resetTransform()}>R</Button>
-                          </div>
-                          <TransformComponent wrapperClass="!w-full !h-full bg-white rounded-lg shadow-inner border" contentClass="!w-full !h-full">
-                            <div 
-                              className="w-full h-full flex items-center justify-center p-8 cursor-grab active:cursor-grabbing"
-                              id="system-diagram-container"
-                              dangerouslySetInnerHTML={{ __html: diagramSvg || '' }}
-                            />
-                          </TransformComponent>
-                        </div>
-                      )}
-                    </TransformWrapper>
+                      {isMaximized ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+                    </Button>
                   </div>
                 </div>
               </ResizablePanel>
             </>
           )}
         </ResizablePanelGroup>
-
-        {showShortcutConsole && (
-          <div className="absolute bottom-0 left-0 right-0 h-48 bg-slate-900 text-slate-100 z-[100] border-t border-slate-700 font-mono text-sm overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between px-4 py-2 bg-slate-800 border-b border-slate-700">
-              <div className="flex items-center gap-2">
-                <Layout className="w-4 h-4" />
-                <span className="font-semibold uppercase tracking-wider text-xs">Shortcut Console</span>
-              </div>
-              <Button variant="ghost" size="icon" className="h-6 w-6 text-slate-400 hover:text-white" onClick={() => setShowShortcutConsole(false)}>
-                <X className="w-4 h-4" />
-              </Button>
-            </div>
-            <div className="flex-1 p-4 overflow-y-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-2">
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Undo Action</span>
-                <span className="text-blue-400">Ctrl + Z</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Redo Action</span>
-                <span className="text-blue-400">Ctrl + Y</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Open File/Folder</span>
-                <span className="text-blue-400">Ctrl + O</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Save Project</span>
-                <span className="text-blue-400">Ctrl + S</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Cut Element</span>
-                <span className="text-blue-400">Ctrl + X</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Copy Element</span>
-                <span className="text-blue-400">Ctrl + C</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Paste Element</span>
-                <span className="text-blue-400">Ctrl + V</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Select All</span>
-                <span className="text-blue-400">Ctrl + A</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Zoom In</span>
-                <span className="text-blue-400">+ / =</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Zoom Out</span>
-                <span className="text-blue-400">- / _</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Fit to View</span>
-                <span className="text-blue-400">F</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-1">
-                <span className="text-slate-400">Delete Element</span>
-                <span className="text-blue-400">Del / Backspace</span>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Full Screen Shortcut Console Overlay */}
+      {showShortcutConsole && (
+        <div className="absolute inset-x-0 bottom-0 z-[100] bg-slate-900/95 text-white p-4 animate-in slide-in-from-bottom duration-300 backdrop-blur-md border-t border-slate-700">
+          <div className="max-w-4xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-slate-700 rounded text-xs font-mono">F11</span>
+                <span className="text-sm text-slate-300">Toggle Fullscreen</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-slate-700 rounded text-xs font-mono">Ctrl + S</span>
+                <span className="text-sm text-slate-300">Save Project</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="px-2 py-1 bg-slate-700 rounded text-xs font-mono">Ctrl + Z</span>
+                <span className="text-sm text-slate-300">Undo</span>
+              </div>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-slate-400 hover:text-white"
+              onClick={() => setShowShortcutConsole(false)}
+            >
+              <X className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
