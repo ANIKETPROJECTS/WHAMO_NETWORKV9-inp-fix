@@ -212,7 +212,7 @@ function DesignerInner() {
             // Use project name from file or fallback to filename
             const loadedProjectName = json.projectName || file.name.replace(/\.json$/i, '');
             loadNetwork(json.nodes, json.edges, json.computationalParams, json.outputRequests, loadedProjectName);
-            setHasStarted(true);
+            setProjectState("active");
             toast({ title: "Project Loaded", description: `Network topology "${loadedProjectName}" restored from JSON.` });
           } else {
             throw new Error("Invalid JSON format");
@@ -222,7 +222,7 @@ function DesignerInner() {
           if (nodes.length > 0) {
             const loadedProjectName = file.name.replace(/\.inp$/i, '');
             loadNetwork(nodes, edges, undefined, undefined, loadedProjectName);
-            setHasStarted(true);
+            setProjectState("active");
             toast({ title: "Project Loaded", description: `Network topology "${loadedProjectName}" restored from .inp file.` });
           } else {
             throw new Error("No valid network elements found in .inp file");
@@ -266,6 +266,11 @@ function DesignerInner() {
   };
 
   const [projectState, setProjectState] = useState<"empty" | "active">("empty");
+  const [isGeneratingOut, setIsGeneratingOut] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(false);
+  const [showLabels, setShowLabels] = useState(true);
+  const [diagramSvg, setDiagramSvg] = useState<string | null>(null);
+  const [showShortcutConsole, setShowShortcutConsole] = useState(false);
 
   const handleNewProject = () => {
     clearNetwork();
@@ -287,6 +292,32 @@ function DesignerInner() {
   };
 
   const [showDiagram, setShowDiagram] = useState(false);
+
+  useEffect(() => {
+    if (showDiagram) {
+      const svg = generateSystemDiagram(nodes, edges, { showLabels });
+      setDiagramSvg(svg);
+    }
+  }, [nodes, edges, showDiagram, showLabels]);
+
+  const downloadImage = async () => {
+    const element = document.getElementById('system-diagram-container');
+    if (!element) return;
+    
+    try {
+      const canvas = await html2canvas(element, {
+        backgroundColor: '#ffffff',
+        scale: 2,
+      });
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `system_diagram_${Date.now()}.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Download Failed", description: "Could not generate image." });
+    }
+  };
 
   const handleGenerateOut = async () => {
     // Create file input element
@@ -364,7 +395,7 @@ function DesignerInner() {
   };
 
   useEffect(() => {
-    const handleToggleConsole = () => setShowShortcutConsole(prev => !prev);
+    const handleToggleConsole = () => setShowShortcutConsole((prev: boolean) => !prev);
     window.addEventListener('toggle-shortcut-console', handleToggleConsole);
     return () => window.removeEventListener('toggle-shortcut-console', handleToggleConsole);
   }, []);
