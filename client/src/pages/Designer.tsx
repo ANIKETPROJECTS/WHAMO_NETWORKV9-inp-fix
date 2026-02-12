@@ -265,62 +265,28 @@ function DesignerInner() {
     }
   };
 
-  const [showDiagram, setShowDiagram] = useState(false);
-  const [showShortcutConsole, setShowShortcutConsole] = useState(false);
-  const [diagramSvg, setDiagramSvg] = useState<string | null>(null);
-  const [isMaximized, setIsMaximized] = useState(false);
-  const [showLabels, setShowLabels] = useState(true);
-
-  useEffect(() => {
-    if (showDiagram) {
-      const svg = generateSystemDiagram(nodes, edges, { showLabels });
-      setDiagramSvg(svg);
-    }
-  }, [nodes, edges, showDiagram, showLabels]);
-
-  const downloadImage = async () => {
-    const element = document.getElementById('system-diagram-container');
-    if (!element) return;
-    
-    try {
-      const canvas = await html2canvas(element, {
-        backgroundColor: '#ffffff',
-        scale: 2,
-      });
-      const dataUrl = canvas.toDataURL('image/png');
-      const link = document.createElement('a');
-      link.download = `system_diagram_${Date.now()}.png`;
-      link.href = dataUrl;
-      link.click();
-    } catch (err) {
-      toast({ variant: "destructive", title: "Download Failed", description: "Could not generate image." });
-    }
-  };
-
-  const [isGeneratingOut, setIsGeneratingOut] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
-
-  useEffect(() => {
-    if (nodes.length > 0) {
-      setHasStarted(true);
-    }
-  }, [nodes.length]);
+  const [projectState, setProjectState] = useState<"empty" | "active">("empty");
 
   const handleNewProject = () => {
     clearNetwork();
-    setHasStarted(true);
+    setProjectState("active");
   };
 
   const handleOpenProject = () => {
-    handleLoadClick();
+    // Load mock project data
+    const mockNodes = [
+      { id: '1', type: 'reservoir', position: { x: 100, y: 150 }, data: { label: 'Res 1' } },
+      { id: '2', type: 'junction', position: { x: 400, y: 150 }, data: { label: 'Junc 1' } },
+    ];
+    const mockEdges = [
+      { id: 'e1-2', source: '1', target: '2', type: 'connection', data: { label: 'Pipe 1' } }
+    ];
+    loadNetwork(mockNodes as any, mockEdges as any, undefined, undefined, "Sample Project");
+    setProjectState("active");
+    toast({ title: "Project Loaded", description: "Sample network topology loaded." });
   };
 
-  // Update setHasStarted if loadNetwork is successful
-  const originalLoadNetwork = loadNetwork;
-  const wrappedLoadNetwork = (...args: any[]) => {
-    setHasStarted(true);
-    return (originalLoadNetwork as any)(...args);
-  };
+  const [showDiagram, setShowDiagram] = useState(false);
 
   const handleGenerateOut = async () => {
     // Create file input element
@@ -405,51 +371,6 @@ function DesignerInner() {
 
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-background text-foreground relative">
-      {!hasStarted && nodes.length === 0 && (
-        <div className="absolute inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/10 backdrop-blur-[2px]">
-          <div className="max-w-md w-full bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in duration-300">
-            <div className="p-8 text-center border-b border-slate-100 bg-slate-50/50">
-              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                <PlusCircle className="w-10 h-10 text-primary" />
-              </div>
-              <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                Welcome to WHAMO
-              </h1>
-              <p className="text-slate-500 text-sm font-medium">
-                Hydraulic Transient Analysis Software
-              </p>
-            </div>
-            
-            <div className="p-6 space-y-4">
-              <Button 
-                className="w-full h-14 text-lg font-semibold flex items-center justify-center gap-3 hover-elevate transition-all duration-200"
-                onClick={handleNewProject}
-                data-testid="button-new-project"
-              >
-                <PlusCircle className="w-5 h-5" />
-                New Project
-              </Button>
-              
-              <Button 
-                variant="outline"
-                className="w-full h-14 text-lg font-semibold flex items-center justify-center gap-3 hover-elevate transition-all duration-200 bg-white"
-                onClick={handleOpenProject}
-                data-testid="button-open-project"
-              >
-                <Download className="w-5 h-5" />
-                Open Project
-              </Button>
-              
-              <div className="pt-4 text-center">
-                <p className="text-xs text-slate-400 font-medium">
-                  Design, simulate, and analyze water distribution networks.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Hidden File Input */}
       <input 
         type="file" 
@@ -475,6 +396,39 @@ function DesignerInner() {
 
       {/* Main Content Area */}
       <div className="flex-1 overflow-hidden relative">
+        {projectState === "empty" && (
+          <div className="absolute inset-0 z-[100] flex items-center justify-center pointer-events-none">
+            <div className="flex gap-12 pointer-events-auto">
+              {/* New Project Card */}
+              <div 
+                className="w-[320px] bg-white rounded-xl shadow-lg border border-slate-200 p-8 flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-all duration-200 group"
+                onClick={handleNewProject}
+              >
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
+                  <PlusCircle className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-3">New Project</h2>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Start a new hydraulic network analysis project from scratch
+                </p>
+              </div>
+
+              {/* Open Project Card */}
+              <div 
+                className="w-[320px] bg-white rounded-xl shadow-lg border border-slate-200 p-8 flex flex-col items-center text-center cursor-pointer hover:shadow-xl transition-all duration-200 group"
+                onClick={handleOpenProject}
+              >
+                <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
+                  <Download className="w-8 h-8 text-white" />
+                </div>
+                <h2 className="text-xl font-bold text-slate-900 mb-3">Open Project</h2>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  Continue working on an existing project or import files
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         <ResizablePanelGroup direction="vertical">
           <ResizablePanel defaultSize={75} minSize={isMaximized ? 0 : 30} className={cn(isMaximized && "hidden")}>
             <div className="flex h-full w-full overflow-hidden relative">
