@@ -126,12 +126,20 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   },
 
   onNodesChange: (changes: NodeChange[]) => {
+    // Only save to history for non-position changes (like deletions or specific types of updates)
+    // To avoid bloating history with every drag movement
+    const hasSignificantChange = changes.some(c => c.type === 'remove' || c.type === 'add');
+    if (hasSignificantChange) get().saveToHistory();
+
     set({
       nodes: applyNodeChanges(changes, get().nodes as any) as WhamoNode[],
     });
   },
 
   onEdgesChange: (changes: EdgeChange[]) => {
+    const hasSignificantChange = changes.some(c => c.type === 'remove' || c.type === 'add');
+    if (hasSignificantChange) get().saveToHistory();
+
     set({
       edges: applyEdgeChanges(changes, get().edges as any) as WhamoEdge[],
     });

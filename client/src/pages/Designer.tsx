@@ -118,6 +118,9 @@ function DesignerInner() {
           undo();
         }
         event.preventDefault();
+      } else if (event.key.toLowerCase() === 'y' && (event.metaKey || event.ctrlKey)) {
+        redo();
+        event.preventDefault();
       } else if ((event.key === 'Delete' || event.key === 'Backspace') && 
           selectedElementId && 
           selectedElementType) {
