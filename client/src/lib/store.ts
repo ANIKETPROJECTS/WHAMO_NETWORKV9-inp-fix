@@ -76,6 +76,7 @@ interface NetworkState {
   isLocked: boolean;
   projectName: string;
   projectNameError: string | null;
+  loadedFileHandle: FileSystemFileHandle | null;
   history: {
     past: Partial<NetworkState>[];
     future: Partial<NetworkState>[];
@@ -90,7 +91,7 @@ interface NetworkState {
   updateEdgeData: (id: string, data: Partial<EdgeData>) => void;
   deleteElement: (id: string, type: 'node' | 'edge') => void;
   selectElement: (id: string | null, type: 'node' | 'edge' | null) => void;
-  loadNetwork: (nodes: WhamoNode[], edges: WhamoEdge[], params?: ComputationalParameters, requests?: OutputRequest[], projectName?: string) => void;
+  loadNetwork: (nodes: WhamoNode[], edges: WhamoEdge[], params?: ComputationalParameters, requests?: OutputRequest[], projectName?: string, fileHandle?: FileSystemFileHandle) => void;
   clearNetwork: () => void;
   updateComputationalParams: (params: Partial<ComputationalParameters>) => void;
   addOutputRequest: (request: Omit<OutputRequest, 'id'>) => void;
@@ -98,6 +99,7 @@ interface NetworkState {
   toggleLock: () => void;
   setProjectName: (name: string) => void;
   setProjectNameError: (error: string | null) => void;
+  setLoadedFileHandle: (handle: FileSystemFileHandle | null) => void;
   undo: () => void;
   redo: () => void;
   saveToHistory: () => void;
@@ -120,6 +122,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   isLocked: false,
   projectName: "Untitled Network",
   projectNameError: null,
+  loadedFileHandle: null,
   history: {
     past: [],
     future: [],
@@ -290,7 +293,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
     set({ selectedElementId: id, selectedElementType: type });
   },
 
-  loadNetwork: (nodes, edges, params, requests, projectName) => {
+  loadNetwork: (nodes, edges, params, requests, projectName, fileHandle) => {
     const maxId = Math.max(
       ...nodes.map(n => parseInt(n.id) || 0),
       ...edges.map(e => parseInt(e.id) || 0),
@@ -320,6 +323,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       computationalParams: params || get().computationalParams,
       outputRequests: requests || [],
       projectName: projectName || get().projectName,
+      loadedFileHandle: fileHandle || null,
       selectedElementId: null, 
       selectedElementType: null 
     });
@@ -333,7 +337,8 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       selectedElementId: null, 
       selectedElementType: null, 
       outputRequests: [],
-      projectName: "Untitled Network" 
+      projectName: "Untitled Network",
+      loadedFileHandle: null
     });
     idCounter = 1;
   },
@@ -364,6 +369,10 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
 
   setProjectNameError: (error: string | null) => {
     set({ projectNameError: error });
+  },
+
+  setLoadedFileHandle: (handle: FileSystemFileHandle | null) => {
+    set({ loadedFileHandle: handle });
   },
 
   saveToHistory: () => {

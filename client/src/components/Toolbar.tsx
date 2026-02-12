@@ -318,24 +318,24 @@ export function Toolbar({ onExport, onSave, onLoad }: { onExport: (fileName?: st
         <Separator orientation="vertical" className="h-8 mx-2" />
 
         <div className="flex items-center gap-1">
-           <Tooltip>
+          <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="secondary" size="sm" onClick={onLoad}>
                 <Upload className="w-4 h-4 mr-2" />
-                Load
+                Open
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Load JSON Project</TooltipContent>
+            <TooltipContent>Open Project</TooltipContent>
           </Tooltip>
           
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="secondary" size="sm" onClick={onSave}>
                 <Save className="w-4 h-4 mr-2" />
-                Save JSON
+                Save
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Save Project State</TooltipContent>
+            <TooltipContent>Save Project</TooltipContent>
           </Tooltip>
 
           <Button onClick={handleExport} className="ml-2 shadow-lg shadow-primary/20" data-testid="button-generate-inp">

@@ -94,7 +94,8 @@ function DesignerInner() {
     isLocked,
     toggleLock,
     undo,
-    redo
+    redo,
+    loadedFileHandle
   } = useNetworkStore();
 
   useEffect(() => {
@@ -120,6 +121,9 @@ function DesignerInner() {
         event.preventDefault();
       } else if (event.key.toLowerCase() === 'y' && (event.metaKey || event.ctrlKey)) {
         redo();
+        event.preventDefault();
+      } else if (event.key.toLowerCase() === 's' && (event.metaKey || event.ctrlKey)) {
+        handleSave();
         event.preventDefault();
       } else if ((event.key === 'Delete' || event.key === 'Backspace') && 
           selectedElementId && 
@@ -182,7 +186,7 @@ function DesignerInner() {
     }
   }, [selectElement]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const data = { 
       projectName,
       nodes, 
@@ -190,12 +194,85 @@ function DesignerInner() {
       computationalParams,
       outputRequests
     };
+
+    try {
+      if (loadedFileHandle && 'showSaveFilePicker' in window) {
+        // We have a file handle and supporting browser, try to save directly
+        // Permission check
+        const options = {
+          mode: 'readwrite',
+        };
+        
+        // Verify permission if needed
+        if (await (loadedFileHandle as any).queryPermission(options) !== 'granted') {
+          if (await (loadedFileHandle as any).requestPermission(options) !== 'granted') {
+            throw new Error("Permission denied");
+          }
+        }
+
+        const writable = await (loadedFileHandle as any).createWritable();
+        await writable.write(JSON.stringify(data, null, 2));
+        await writable.close();
+        toast({ title: "Project Saved", description: `Changes saved to ${projectName}.` });
+        return;
+      }
+    } catch (err) {
+      console.warn("Direct save failed, falling back to download:", err);
+    }
+
+    // Fallback to traditional download if no handle or direct save fails
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    saveAs(blob, `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'network'}_${Date.now()}.json`);
-    toast({ title: "Project Saved", description: "Network topology saved to JSON." });
+    const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'network'}.json`;
+    saveAs(blob, fileName);
+    toast({ title: "Project Downloaded", description: "Network topology saved as JSON file." });
   };
 
-  const handleLoadClick = () => {
+  const handleLoadClick = async () => {
+    if ('showOpenFilePicker' in window) {
+      try {
+        const [handle] = await (window as any).showOpenFilePicker({
+          types: [
+            {
+              description: 'WHAMO Projects',
+              accept: {
+                'application/json': ['.json'],
+                'text/plain': ['.inp']
+              }
+            }
+          ]
+        });
+
+        const file = await handle.getFile();
+        const content = await file.text();
+        const fileName = file.name.toLowerCase();
+
+        if (fileName.endsWith('.json')) {
+          const json = JSON.parse(content);
+          if (json.nodes && json.edges) {
+            const loadedProjectName = json.projectName || file.name.replace(/\.json$/i, '');
+            loadNetwork(json.nodes, json.edges, json.computationalParams, json.outputRequests, loadedProjectName, handle);
+            setProjectState("active");
+            toast({ title: "Project Loaded", description: `Network topology "${loadedProjectName}" restored from JSON.` });
+          } else {
+            throw new Error("Invalid JSON format");
+          }
+        } else if (fileName.endsWith('.inp')) {
+          const { nodes, edges } = parseInpFile(content);
+          if (nodes.length > 0) {
+            const loadedProjectName = file.name.replace(/\.inp$/i, '');
+            loadNetwork(nodes, edges, undefined, undefined, loadedProjectName, handle);
+            setProjectState("active");
+            toast({ title: "Project Loaded", description: `Network topology "${loadedProjectName}" restored from .inp file.` });
+          } else {
+            throw new Error("No valid network elements found in .inp file");
+          }
+        }
+        return;
+      } catch (err: any) {
+        if (err.name === 'AbortError') return;
+        console.error("Native load failed, falling back to hidden input", err);
+      }
+    }
     fileInputRef.current?.click();
   };
 

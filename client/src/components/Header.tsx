@@ -101,6 +101,7 @@ export function Header({
     undo,
     redo,
     history,
+    loadedFileHandle
   } = useNetworkStore();
 
   const [localParams, setLocalParams] = useState(computationalParams);
@@ -187,6 +188,24 @@ export function Header({
     onExport(projectName);
   };
 
+  const handleDownloadJSON = () => {
+    if (!projectName.trim() || projectName === "Untitled Network") {
+      setProjectNameError("Please enter a file name");
+      return;
+    }
+    
+    const { nodes, edges, computationalParams, outputRequests } = useNetworkStore.getState();
+    const data = { projectName, nodes, edges, computationalParams, outputRequests };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const fileName = `${projectName.replace(/[^a-z0-9]/gi, '_').toLowerCase() || 'network'}.json`;
+    
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = fileName;
+    link.click();
+    toast({ title: "Downloaded", description: "Project exported as JSON file." });
+  };
+
   const handleOutGenerate = () => {
     if (!projectName.trim() || projectName === "Untitled Network") {
       setProjectNameError("Please enter a file name");
@@ -243,7 +262,10 @@ export function Header({
                 </MenubarItem>
                 <MenubarSeparator />
                 <MenubarItem onClick={onSave} className="gap-2">
-                  <Save className="w-4 h-4" /> Save
+                  <Save className="w-4 h-4" /> {loadedFileHandle ? 'Save' : 'Save (Download)'}
+                </MenubarItem>
+                <MenubarItem onClick={handleDownloadJSON} className="gap-2">
+                  <Download className="w-4 h-4" /> Download (.json)
                 </MenubarItem>
                 <MenubarItem
                   onClick={() =>
