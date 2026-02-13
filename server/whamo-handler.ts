@@ -7,6 +7,9 @@ import { v4 as uuidv4 } from "uuid";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Ensure __dirname is always a string for path functions
+const dirnameStr = String(__dirname);
+
 export function setupWhamoRoutes(app: any) {
   const tempDir = path.join(process.cwd(), "temp");
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
