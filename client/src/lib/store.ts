@@ -343,6 +343,10 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       selectedElementId: null, 
       selectedElementType: null 
     });
+
+    if (!requests || requests.length === 0) {
+      get().autoSelectOutputRequests();
+    }
   },
 
   clearNetwork: () => {
@@ -357,6 +361,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       loadedFileHandle: null
     });
     idCounter = 1;
+    get().autoSelectOutputRequests();
   },
 
   autoSelectOutputRequests: () => {
