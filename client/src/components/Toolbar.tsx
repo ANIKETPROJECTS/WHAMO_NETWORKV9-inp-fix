@@ -166,17 +166,21 @@ export function Toolbar({ onExport, onSave, onLoad }: { onExport: (fileName?: st
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="_" disabled>Nodes</SelectItem>
-                      {nodes.map(n => (
-                        <SelectItem key={n.id} value={n.id}>
-                          {String(n.data.nodeNumber)}
-                        </SelectItem>
-                      ))}
+                      {nodes
+                        .filter(n => !outputRequests.some(req => req.elementId === n.id && req.requestType === 'HISTORY'))
+                        .map(n => (
+                          <SelectItem key={n.id} value={n.id}>
+                            {String(n.data.nodeNumber)}
+                          </SelectItem>
+                        ))}
                       <SelectItem value="__" disabled>Conduits</SelectItem>
-                      {edges.map(e => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.data?.label || `Edge ${e.id}`}
-                        </SelectItem>
-                      ))}
+                      {edges
+                        .filter(e => !outputRequests.some(req => req.elementId === e.id && req.requestType === 'HISTORY'))
+                        .map(e => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {e.data?.label || `Edge ${e.id}`}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
