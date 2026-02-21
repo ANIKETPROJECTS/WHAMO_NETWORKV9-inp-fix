@@ -141,6 +141,68 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
 
   setGlobalUnit: (unit: UnitSystem) => {
     get().saveToHistory();
+    const state = get();
+    const oldUnit = state.globalUnit;
+    
+    // If there's a selected element and it doesn't have a local unit override,
+    // we should convert its values because the "effective" unit is changing.
+    if (state.selectedElementId && state.selectedElementType) {
+      const isNode = state.selectedElementType === 'node';
+      const element = isNode 
+        ? state.nodes.find(n => n.id === state.selectedElementId)
+        : state.edges.find(e => e.id === state.selectedElementId);
+
+      if (element && !element.data?.unit) {
+        const SI_TO_FPS = {
+          length: 3.28084,
+          diameter: 3.28084,
+          elevation: 3.28084,
+          celerity: 3.28084,
+          area: 10.7639,
+          flow: 35.3147,
+        };
+
+        const convertValue = (value: number, from: UnitSystem, to: UnitSystem, type: keyof typeof SI_TO_FPS) => {
+          if (from === to) return value;
+          const factor = SI_TO_FPS[type] || 1;
+          return to === 'FPS' ? value * factor : value / factor;
+        };
+
+        const fieldMapping: Record<string, keyof typeof SI_TO_FPS> = {
+          length: 'length',
+          diameter: 'diameter',
+          elevation: 'elevation',
+          tankTop: 'elevation',
+          tankBottom: 'elevation',
+          distance: 'length',
+          celerity: 'celerity',
+          area: 'area'
+        };
+
+        const dataUpdate: any = {};
+        Object.entries(element.data || {}).forEach(([key, value]) => {
+          if (typeof value === 'number' && fieldMapping[key]) {
+            dataUpdate[key] = Number(convertValue(value, oldUnit, unit, fieldMapping[key]).toFixed(4));
+          }
+        });
+
+        if (element.data?.schedulePoints) {
+          dataUpdate.schedulePoints = (element.data.schedulePoints as any[]).map(p => ({
+            ...p,
+            flow: Number(convertValue(p.flow, oldUnit, unit, 'flow').toFixed(4))
+          }));
+        }
+
+        if (Object.keys(dataUpdate).length > 0) {
+          if (isNode) {
+            state.updateNodeData(state.selectedElementId, dataUpdate);
+          } else {
+            state.updateEdgeData(state.selectedElementId, dataUpdate);
+          }
+        }
+      }
+    }
+    
     set({ globalUnit: unit });
   },
 
