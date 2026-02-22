@@ -328,23 +328,18 @@ function DesignerInner() {
 
   const handleGenerateInp = async () => {
     try {
-      const inpContent = generateInpFile(nodes, edges);
+      // Pass false to prevent internal download, we handle it here
+      const inpContent = generateInpFile(nodes, edges, false);
       
-      // Generate system diagram as well
+      // Generate system diagram
       const diagramHtml = generateSystemDiagram(nodes, edges);
       const diagramBlob = new Blob([diagramHtml], { type: 'text/html' });
       saveAs(diagramBlob, `system_diagram_${Date.now()}.html`);
 
+      // Download the .inp file with the project name
       const blob = new Blob([inpContent], { type: "text/plain" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
       const downloadName = (projectName && projectName !== "Untitled Network") ? projectName : "network";
-      link.download = `${downloadName}.inp`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      saveAs(blob, `${downloadName}.inp`);
       
       toast({ title: "Files Generated", description: "WHAMO input file and System Diagram downloaded successfully." });
     } catch (err) {

@@ -349,8 +349,12 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
 
   if (autoDownload) {
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
-    const fileName = typeof autoDownload === 'string' ? autoDownload : 'network';
-    saveAs(blob, `${fileName}.inp`);
+    // If autoDownload is a boolean true, we don't trigger download here
+    // as it's handled by the caller with potentially more files.
+    // If it's a string, it's the filename.
+    if (typeof autoDownload === 'string') {
+      saveAs(blob, `${autoDownload}.inp`);
+    }
   }
   return lines.join('\n');
 }
