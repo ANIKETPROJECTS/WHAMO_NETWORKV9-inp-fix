@@ -39,22 +39,51 @@ export function TooltipWrapper({
 export function DataList({ data, title }: { data: any, title: string }) {
   if (!data) return null;
   
-  const entries = Object.entries(data).filter(([key]) => key !== 'id' && key !== 'label');
+  const unit = data.unit || 'SI';
+  const entries = Object.entries(data).filter(([key]) => 
+    key !== 'id' && key !== 'label' && key !== 'unit' && key !== 'type'
+  );
+  
+  const getUnit = (key: string) => {
+    const units: Record<string, { SI: string, FPS: string }> = {
+      elevation: { SI: 'm', FPS: 'ft' },
+      tankTop: { SI: 'm', FPS: 'ft' },
+      tankBottom: { SI: 'm', FPS: 'ft' },
+      diameter: { SI: 'm', FPS: 'ft' },
+      length: { SI: 'm', FPS: 'ft' },
+      celerity: { SI: 'm/s', FPS: 'ft/s' },
+      flow: { SI: 'm³/s', FPS: 'ft³/s' },
+      distance: { SI: 'm', FPS: 'ft' },
+      area: { SI: 'm²', FPS: 'ft²' },
+      d: { SI: 'm', FPS: 'ft' },
+      a: { SI: 'm²', FPS: 'ft²' },
+    };
+    return units[key]?.[unit as 'SI' | 'FPS'] || '';
+  };
   
   return (
     <div className="space-y-1.5">
-      <div className="font-bold text-slate-900 border-b pb-1 mb-1 uppercase tracking-wider text-[10px]">
-        {title}
+      <div className="flex justify-between items-center border-b pb-1 mb-1">
+        <div className="font-bold text-slate-900 uppercase tracking-wider text-[10px]">
+          {title}
+        </div>
+        <div className="text-[9px] font-medium px-1 bg-slate-100 rounded text-slate-500">
+          {unit}
+        </div>
       </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-        {entries.map(([key, value]) => (
-          <div key={key} className="contents">
-            <span className="text-slate-500 font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
-            <span className="text-slate-900 font-bold text-right">
-              {typeof value === 'number' ? Number(value).toLocaleString() : String(value)}
-            </span>
-          </div>
-        ))}
+        {entries.map(([key, value]) => {
+          const unitStr = getUnit(key);
+          return (
+            <div key={key} className="contents">
+              <span className="text-slate-500 font-medium capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
+              <span className="text-slate-900 font-bold text-right">
+                {typeof value === 'number' ? Number(value).toLocaleString() : String(value)}
+                {unitStr && <span className="ml-0.5 text-[9px] font-normal text-slate-400">{unitStr}</span>}
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
