@@ -6,12 +6,9 @@ import { z } from "zod";
 import { execFile } from "child_process";
 import path from "path";
 import fs from "fs";
-import { fileURLToPath } from "url";
 import multer from "multer";
 import { v4 as uuidv4 } from "uuid";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const upload = multer({ dest: "uploads/" });
 
 import { setupWhamoRoutes } from "./whamo-handler";
