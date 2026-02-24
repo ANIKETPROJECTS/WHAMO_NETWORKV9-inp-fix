@@ -28,10 +28,8 @@ Preferred communication style: Simple, everyday language.
 - **Production Build**: esbuild bundles server code, Vite builds client assets
 
 ### Data Storage
-- **Database**: PostgreSQL via Drizzle ORM
-- **Schema Location**: `shared/schema.ts` contains table definitions and Zod validation schemas
-- **Migrations**: Drizzle Kit manages schema changes (`drizzle-kit push`)
-- **Session Store**: connect-pg-simple for PostgreSQL-backed sessions
+- **Storage**: In-memory storage (no database required)
+- **Schema Location**: `shared/schema.ts` contains type definitions and Zod validation schemas
 
 ### Project Structure
 ```
