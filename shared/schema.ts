@@ -23,6 +23,7 @@ export type NodeType = z.infer<typeof nodeTypeSchema>;
 export const reservoirPropsSchema = z.object({
   id: z.string(),
   elevation: z.number(),
+  reservoirElevation: z.number().default(0),
   comment: z.string().optional(),
 });
 

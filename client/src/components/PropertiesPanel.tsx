@@ -66,7 +66,7 @@ export function PropertiesPanel() {
 
     Object.entries(element.data || {}).forEach(([key, value]) => {
       if (typeof value === 'number' && fieldMapping[key]) {
-        dataUpdate[key] = Number(convertValue(value, currentUnit, newUnit, fieldMapping[key]).toFixed(4));
+        dataUpdate[key] = Number(convertValue(value, currentUnit, newUnit, fieldMapping[key]).toFixed(2));
       }
     });
 
@@ -74,7 +74,7 @@ export function PropertiesPanel() {
     if (element.data?.schedulePoints) {
       dataUpdate.schedulePoints = (element.data.schedulePoints as any[]).map(p => ({
         ...p,
-        flow: Number(convertValue(p.flow, currentUnit, newUnit, 'flow').toFixed(4))
+        flow: Number(convertValue(p.flow, currentUnit, newUnit, 'flow').toFixed(2))
       }));
     }
 
@@ -217,6 +217,17 @@ export function PropertiesPanel() {
                   onChange={(e) => handleChange('elevation', e.target.value)} 
                 />
               </div>
+              {element.data?.type === 'reservoir' && (
+                <div className="grid gap-2">
+                  <Label htmlFor="resElev">Reservoir Elevation (HW) ({currentUnit === 'SI' ? 'm' : 'ft'})</Label>
+                  <Input 
+                    id="resElev" 
+                    type="number" 
+                    value={element.data?.reservoirElevation || 0} 
+                    onChange={(e) => handleChange('reservoirElevation', e.target.value)} 
+                  />
+                </div>
+              )}
               {element.data?.type === 'flowBoundary' && (
                 <>
                   <div className="grid gap-2">

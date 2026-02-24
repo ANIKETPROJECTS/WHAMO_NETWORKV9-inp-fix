@@ -19,9 +19,9 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
     if (value === undefined) return '';
     // If current unit is FPS, value is already in FPS
     // If current unit is SI, we convert it to FPS for the .inp file
-    if (currentUnit === 'FPS') return value.toFixed(4);
+    if (currentUnit === 'FPS') return value.toFixed(2);
     const factor = SI_TO_FPS[type] || 1;
-    return (value * factor).toFixed(4);
+    return (value * factor).toFixed(2);
   };
 
   // Helper to add line
@@ -188,7 +188,8 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
     addComment(n.data.comment);
     addL('RESERVOIR');
     addL(` ID ${n.data.label}`);
-    addL(` ELEV ${toFPS(Number(n.data.elevation), unit, 'elevation')}`);
+    addL(` HW ${n.data.label}`); // Added HW label matching spec
+    addL(` ELEV ${toFPS(Number(n.data.reservoirElevation || 0), unit, 'elevation')}`);
     addL(' FINISH');
     addL('');
   });
