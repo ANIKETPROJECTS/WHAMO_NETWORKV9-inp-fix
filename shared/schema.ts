@@ -2,7 +2,7 @@ import { pgTable, text, serial, jsonb, timestamp } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// === TABLE DEFINITIONS ===
+// === TABLE DEFINITIONS (Still kept for type generation, but no longer used for DB) ===
 export const projects = pgTable("projects", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -114,7 +114,12 @@ export const networkStateSchema = z.object({
 export type NetworkState = z.infer<typeof networkStateSchema>;
 
 // === API CONTRACT TYPES ===
-export type Project = typeof projects.$inferSelect;
+export type Project = {
+  id: number;
+  name: string;
+  content: any;
+  createdAt: Date | null;
+};
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 
 export type CreateProjectRequest = InsertProject;

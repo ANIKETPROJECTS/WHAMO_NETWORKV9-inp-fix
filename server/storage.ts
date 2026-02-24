@@ -1,5 +1,4 @@
 import {
-  projects,
   type InsertProject,
   type UpdateProjectRequest,
   type ProjectResponse
@@ -44,7 +43,7 @@ export class MemStorage implements IStorage {
   async updateProject(id: number, updates: UpdateProjectRequest): Promise<ProjectResponse> {
     const existing = this.projects.get(id);
     if (!existing) {
-      throw new Error(`Project with id ${id} not found`);
+      throw new Error(`Project with id \${id} not found`);
     }
     const updated = { ...existing, ...updates };
     this.projects.set(id, updated);
