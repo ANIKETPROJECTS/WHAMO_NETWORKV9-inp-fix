@@ -57,6 +57,7 @@ export function DataList({ data, title }: { data: any, title: string }) {
       flow: { SI: 'm³/s', FPS: 'ft³/s' },
       distance: { SI: 'm', FPS: 'ft' },
       area: { SI: 'm²', FPS: 'ft²' },
+      reservoirElevation: { SI: 'm', FPS: 'ft' },
       d: { SI: 'm', FPS: 'ft' },
       a: { SI: 'm²', FPS: 'ft²' },
     };
