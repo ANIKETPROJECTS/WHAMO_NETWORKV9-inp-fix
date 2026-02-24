@@ -1,11 +1,9 @@
-import { db } from "./db";
 import {
   projects,
   type InsertProject,
   type UpdateProjectRequest,
   type ProjectResponse
 } from "@shared/schema";
-import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getProjects(): Promise<ProjectResponse[]>;
@@ -15,32 +13,47 @@ export interface IStorage {
   deleteProject(id: number): Promise<void>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class MemStorage implements IStorage {
+  private projects: Map<number, ProjectResponse>;
+  private currentId: number;
+
+  constructor() {
+    this.projects = new Map();
+    this.currentId = 1;
+  }
+
   async getProjects(): Promise<ProjectResponse[]> {
-    return await db.select().from(projects);
+    return Array.from(this.projects.values());
   }
 
   async getProject(id: number): Promise<ProjectResponse | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return this.projects.get(id);
+  }
+
+  async createProject(insertProject: InsertProject): Promise<ProjectResponse> {
+    const id = this.currentId++;
+    const project: ProjectResponse = {
+      ...insertProject,
+      id,
+      createdAt: new Date(),
+    };
+    this.projects.set(id, project);
     return project;
   }
 
-  async createProject(project: InsertProject): Promise<ProjectResponse> {
-    const [created] = await db.insert(projects).values(project).returning();
-    return created;
-  }
-
   async updateProject(id: number, updates: UpdateProjectRequest): Promise<ProjectResponse> {
-    const [updated] = await db.update(projects)
-      .set(updates)
-      .where(eq(projects.id, id))
-      .returning();
+    const existing = this.projects.get(id);
+    if (!existing) {
+      throw new Error(`Project with id ${id} not found`);
+    }
+    const updated = { ...existing, ...updates };
+    this.projects.set(id, updated);
     return updated;
   }
 
   async deleteProject(id: number): Promise<void> {
-    await db.delete(projects).where(eq(projects.id, id));
+    this.projects.delete(id);
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
