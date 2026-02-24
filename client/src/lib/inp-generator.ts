@@ -188,7 +188,6 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
     addComment(n.data.comment);
     addL('RESERVOIR');
     addL(` ID ${n.data.label}`);
-    addL(` HW ${n.data.label}`); // Added HW label matching spec
     addL(` ELEV ${toFPS(Number(n.data.reservoirElevation || 0), unit, 'elevation')}`);
     addL(' FINISH');
     addL('');
