@@ -23,6 +23,7 @@ interface NodeData extends Record<string, unknown> {
   type: NodeType;
   unit?: UnitSystem;
   elevation?: number;
+  reservoirElevation?: number;
   nodeNumber?: number;
   comment?: string;
   // Specific properties
@@ -165,6 +166,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       length: 'length',
       diameter: 'diameter',
       elevation: 'elevation',
+      reservoirElevation: 'elevation',
       tankTop: 'elevation',
       tankBottom: 'elevation',
       topElevation: 'elevation',
@@ -297,7 +299,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
 
     switch (type) {
       case 'reservoir':
-        initialData = { ...initialData, label: 'HW', nodeNumber, elevation: 100 };
+        initialData = { ...initialData, label: 'HW', nodeNumber, elevation: 100, reservoirElevation: 100 };
         break;
       case 'node':
         initialData = { ...initialData, label: `Node ${nodeNumber}`, nodeNumber, elevation: 50 };
