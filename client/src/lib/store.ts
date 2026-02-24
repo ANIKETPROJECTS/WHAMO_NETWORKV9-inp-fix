@@ -134,7 +134,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   projectName: "Untitled Network",
   projectNameError: null,
   loadedFileHandle: null,
-  globalUnit: 'SI',
+  globalUnit: 'FPS',
   history: {
     past: [],
     future: [],
