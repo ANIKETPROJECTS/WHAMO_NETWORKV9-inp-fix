@@ -105,7 +105,8 @@ export function Toolbar({ onExport, onSave, onLoad }: { onExport: (fileName?: st
       const blob = await response.blob();
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = `${fileName || "network"}.out`;
+      const downloadName = (projectName && projectName !== "Untitled Network") ? projectName : "network";
+      link.download = `${downloadName}.out`;
       link.click();
     } catch (error: any) {
       console.error("WHAMO Error:", error);

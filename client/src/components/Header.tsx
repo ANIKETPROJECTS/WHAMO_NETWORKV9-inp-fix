@@ -191,7 +191,9 @@ export function Header({
         
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = file.name;
+        const downloadName = (projectName && projectName !== "Untitled Network") ? projectName : "network";
+        const extension = file.name.split('.').pop();
+        link.download = `${downloadName}.${extension}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);

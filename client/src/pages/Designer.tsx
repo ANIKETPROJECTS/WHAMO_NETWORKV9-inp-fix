@@ -445,7 +445,8 @@ function DesignerInner() {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = file.name.replace('.inp', '_output.out');
+        const downloadName = (projectName && projectName !== "Untitled Network") ? projectName : "network";
+        a.download = `${downloadName}_output.out`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
