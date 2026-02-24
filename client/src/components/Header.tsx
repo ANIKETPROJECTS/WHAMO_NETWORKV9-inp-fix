@@ -165,15 +165,33 @@ export function Header({
         throw new Error(errorText || "WHAMO simulation failed.");
       }
 
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      const downloadName = (fileName && fileName !== "Untitled Network") ? fileName : "network";
-      link.download = `${downloadName}.out`;
-      link.click();
+      const data = await response.json();
+      
+      if (!data.files || !Array.isArray(data.files)) {
+        throw new Error("Invalid response format from server");
+      }
+
+      data.files.forEach((file: { name: string; content: string; type: string }) => {
+        const byteCharacters = atob(file.content);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: file.type || "text/plain" });
+        
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = file.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      });
+
       toast({
         title: "Success",
-        description: ".OUT file generated and downloaded.",
+        description: "WHAMO output files generated and downloaded.",
       });
     } catch (error: any) {
       console.error("WHAMO Error:", error);
@@ -477,15 +495,31 @@ export function Header({
                           },
                         );
                         if (!response.ok)
-                          throw new Error("Failed to generate .OUT file");
-                        const blob = await response.blob();
-                        const url = window.URL.createObjectURL(blob);
-                        const a = document.createElement("a");
-                        a.href = url;
-                        a.download = file.name.replace(".inp", ".out");
-                        document.body.appendChild(a);
-                        a.click();
-                        window.URL.revokeObjectURL(url);
+                          throw new Error("Failed to generate WHAMO files");
+                        
+                        const data = await response.json();
+                        if (!data.files || !Array.isArray(data.files)) {
+                          throw new Error("Invalid response format from server");
+                        }
+
+                        data.files.forEach((file: { name: string; content: string; type: string }) => {
+                          const byteCharacters = atob(file.content);
+                          const byteNumbers = new Array(byteCharacters.length);
+                          for (let i = 0; i < byteCharacters.length; i++) {
+                            byteNumbers[i] = byteCharacters.charCodeAt(i);
+                          }
+                          const byteArray = new Uint8Array(byteNumbers);
+                          const blob = new Blob([byteArray], { type: file.type || "text/plain" });
+                          
+                          const url = window.URL.createObjectURL(blob);
+                          const a = document.createElement("a");
+                          a.href = url;
+                          a.download = file.name;
+                          document.body.appendChild(a);
+                          a.click();
+                          document.body.removeChild(a);
+                          window.URL.revokeObjectURL(url);
+                        });
                       } catch (err) {
                         toast({
                           title: "Error",
