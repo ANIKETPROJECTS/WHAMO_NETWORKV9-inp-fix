@@ -167,11 +167,20 @@ export function Header({
 
       const data = await response.json();
       
-      if (!data.files || !Array.isArray(data.files)) {
-        throw new Error("Invalid response format from server");
+      // Handle both array and object formats for maximum compatibility
+      const filesToDownload = Array.isArray(data.files) 
+        ? data.files 
+        : Object.entries(data.files || {}).map(([key, content]) => ({
+            name: `network.${key}`,
+            content: content as string,
+            type: "text/plain"
+          }));
+
+      if (filesToDownload.length === 0) {
+        throw new Error("No output files received from server");
       }
 
-      data.files.forEach((file: { name: string; content: string; type: string }) => {
+      filesToDownload.forEach((file: { name: string; content: string; type?: string }) => {
         const byteCharacters = atob(file.content);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -498,11 +507,21 @@ export function Header({
                           throw new Error("Failed to generate WHAMO files");
                         
                         const data = await response.json();
-                        if (!data.files || !Array.isArray(data.files)) {
-                          throw new Error("Invalid response format from server");
+                        
+                        // Handle both array and object formats
+                        const filesToDownload = Array.isArray(data.files) 
+                          ? data.files 
+                          : Object.entries(data.files || {}).map(([key, content]) => ({
+                              name: file.name.replace(".inp", `.${key}`),
+                              content: content as string,
+                              type: "text/plain"
+                            }));
+
+                        if (filesToDownload.length === 0) {
+                          throw new Error("No output files received from server");
                         }
 
-                        data.files.forEach((file: { name: string; content: string; type: string }) => {
+                        filesToDownload.forEach((file: { name: string; content: string; type?: string }) => {
                           const byteCharacters = atob(file.content);
                           const byteNumbers = new Array(byteCharacters.length);
                           for (let i = 0; i < byteCharacters.length; i++) {
