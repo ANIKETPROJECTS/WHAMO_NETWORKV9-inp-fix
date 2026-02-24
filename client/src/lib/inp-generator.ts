@@ -170,7 +170,7 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
     if (node && node.data.elevation !== undefined) {
       const unit = node.data.unit || globalUnit;
       const elev = toFPS(Number(node.data.elevation), unit, 'elevation');
-      addL(`    NODE ${id} ELEV ${elev}`);
+      addL(`NODE ${id} ELEV ${elev}`);
     }
   });
 
