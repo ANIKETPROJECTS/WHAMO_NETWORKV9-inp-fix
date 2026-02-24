@@ -223,8 +223,8 @@ export function generateInpFile(nodes: WhamoNode[], edges: WhamoEdge[], autoDown
     
     if (d.cplus !== undefined || d.cminus !== undefined) {
       addL(' ADDEDLOSS');
-      if (d.cplus !== undefined) addL(`     CPLUS ${d.cplus.toFixed(2)}`);
-      if (d.cminus !== undefined) addL(`     CMINUS ${d.cminus.toFixed(2)}`);
+      if (d.cplus !== undefined) addL(`     CPLUS ${d.cplus}`);
+      if (d.cminus !== undefined) addL(`     CMINUS ${d.cminus}`);
     }
     
     if (d.numSegments !== undefined) {
